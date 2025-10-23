@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sportradar.Calendar.Presentation.Web", "Sportradar.Calendar.Presentation.Web\Sportradar.Calendar.Presentation.Web.csproj", "{98414F8F-BEF2-4BB1-927C-594E850FC763}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sportradar.Calendar.Infrastructure", "Sportradar.Calendar.Infrastructure\Sportradar.Calendar.Infrastructure.csproj", "{5023F9D3-7228-42C4-8245-2E88BDC4467D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sportradar.Calendar.Domain", "Sportradar.Calendar.Domain\Sportradar.Calendar.Domain.csproj", "{B8B64596-8934-4929-AC74-ACB456BC4D26}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sportradar.Calendar.Application", "Sportradar.Calendar.Application\Sportradar.Calendar.Application.csproj", "{78477378-CDF1-4D06-BD03-D9FC7E45E250}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{98414F8F-BEF2-4BB1-927C-594E850FC763}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98414F8F-BEF2-4BB1-927C-594E850FC763}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98414F8F-BEF2-4BB1-927C-594E850FC763}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98414F8F-BEF2-4BB1-927C-594E850FC763}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5023F9D3-7228-42C4-8245-2E88BDC4467D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5023F9D3-7228-42C4-8245-2E88BDC4467D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5023F9D3-7228-42C4-8245-2E88BDC4467D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5023F9D3-7228-42C4-8245-2E88BDC4467D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8B64596-8934-4929-AC74-ACB456BC4D26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8B64596-8934-4929-AC74-ACB456BC4D26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8B64596-8934-4929-AC74-ACB456BC4D26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8B64596-8934-4929-AC74-ACB456BC4D26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78477378-CDF1-4D06-BD03-D9FC7E45E250}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78477378-CDF1-4D06-BD03-D9FC7E45E250}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78477378-CDF1-4D06-BD03-D9FC7E45E250}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78477378-CDF1-4D06-BD03-D9FC7E45E250}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
