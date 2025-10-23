@@ -8,12 +8,20 @@
 
     <ItemGroup>
       <Folder Include="Configurations\" />
-      <Folder Include="Persistence\" />
       <Folder Include="Services\" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Sportradar.Calendar.Application\Sportradar.Calendar.Application.csproj" />
+      <ProjectReference Include="..\Sportradar.Calendar.Domain\Sportradar.Calendar.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.10">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     </ItemGroup>
 
 </Project>

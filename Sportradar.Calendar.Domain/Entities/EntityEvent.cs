@@ -6,7 +6,7 @@ namespace Sportradar.Calendar.Domain.Entities;
 
 public sealed class EntityEvent
 {
-    [Required]
+    [Required, Key]
     public int Id { get; private set; }
     [Required]
     public int SportId { get; private set; }
