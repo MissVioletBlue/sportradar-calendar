@@ -5,5 +5,7 @@ namespace Sportradar.Calendar.Application.Abstractions;
 public interface IEntityEventRepository
 {
     Task<IReadOnlyList<EventDto>> GetUpcomingAsync(DateTimeOffset from, DateTimeOffset to, int? sportId, CancellationToken cancellationToken);
-    Task<int> AddAsync(CreateEventDto input, CancellationToken ct);
+    Task<int> AddAsync(CreateEventDto input, CancellationToken cancellationToken);
+    Task DeleteAsync(int id, CancellationToken cancellationToken);
+    Task<EventDto?> GetAsync(int id, CancellationToken cancellationToken);
 }

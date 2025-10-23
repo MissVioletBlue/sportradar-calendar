@@ -20,7 +20,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .Build();
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        var connectionString = configuration.GetConnectionString("DefaultConnection") ?? configuration["DefaultConnection"];
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
