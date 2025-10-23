@@ -1,6 +1,12 @@
+using Sportradar.Calendar.Application.Abstractions;
+using Sportradar.Calendar.Application.Queries;
+using Sportradar.Calendar.Infrastructure.InMemory;
 using Sportradar.Calendar.Presentation.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<GetUpcomingEvents>();
+builder.Services.AddSingleton<IEntityEventRepository, InMemoryEventRepository>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

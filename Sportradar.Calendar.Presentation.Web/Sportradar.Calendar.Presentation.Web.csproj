@@ -13,4 +13,9 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Sportradar.Calendar.Application\Sportradar.Calendar.Application.csproj" />
+      <ProjectReference Include="..\Sportradar.Calendar.Infrastructure\Sportradar.Calendar.Infrastructure.csproj" />
+    </ItemGroup>
+
 </Project>

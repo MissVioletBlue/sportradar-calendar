@@ -12,4 +12,8 @@
       <Folder Include="Services\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Sportradar.Calendar.Application\Sportradar.Calendar.Application.csproj" />
+    </ItemGroup>
+
 </Project>

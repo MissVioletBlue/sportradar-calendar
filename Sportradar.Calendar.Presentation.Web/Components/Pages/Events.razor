@@ -1,0 +1,52 @@
+﻿@page "/events"
+@using Sportradar.Calendar.Application.DTOs
+@using Sportradar.Calendar.Application.Queries
+@inject GetUpcomingEvents GetUpcomingEvents
+
+<PageTitle>Sports Events</PageTitle>
+
+<h1>Upcoming Sports Events</h1>
+
+@if (_events is null)
+{
+    <p><em>Loading events...</em></p>
+}
+else if (_events.Count == 0)
+{
+    <p>No events found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Sport</th>
+            <th>Match</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var e in _events)
+        {
+            <tr>
+                <td>@e.StartsAt.ToLocalTime().ToString("ddd, dd MMM yyyy")</td>
+                <td>@e.StartsAt.ToLocalTime().ToString("HH:mm")</td>
+                <td>@e.Sport</td>
+                <td>@e.Title</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IReadOnlyList<EventDto>? _events;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var from = DateTimeOffset.Now.AddYears(-10);
+        var to   = DateTimeOffset.Now.AddYears(10);
+        _events = await GetUpcomingEvents.ExecuteAsync(from, to, null, CancellationToken.None);
+    }
+}
