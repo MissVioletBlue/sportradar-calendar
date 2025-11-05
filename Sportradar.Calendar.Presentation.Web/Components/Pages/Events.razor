@@ -1,5 +1,6 @@
 ﻿@page "/"
 @implements IDisposable
+@rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
 @using Sportradar.Calendar.Application.DTOs
 @using Sportradar.Calendar.Application.Queries
@@ -120,7 +121,7 @@
             <p>Add your own events. Your addition stays in this view.</p>
         </div>
         <EditForm EditContext="_editContext" OnValidSubmit="HandleEventSubmit" FormName="add-event-form">
-            <DataAnnotationsValidator/>
+            <AntiforgeryToken /> <DataAnnotationsValidator/>
             <div class="form-grid">
                 <div class="form-field">
                     <label for="event-title">Matchup</label>
@@ -156,8 +157,7 @@
                     <input id="event-time"
                            class="form-control"
                            type="time"
-                           @bind="_newEvent.Time"
-                           @bind:format="HH:mm" />
+                           @bind="_newEvent.Time" />
                     <ValidationMessage For="() => _newEvent.Time" />
                 </div>
             </div>
@@ -287,10 +287,6 @@
         {
             _submissionError = "We couldn't save your event right now. Please try again.";
         }
-        finally
-        {
-            StateHasChanged();
-        }
     }
 
     private void ResetFormContext()
@@ -345,7 +341,8 @@
 
         [Required] public DateTime? Date { get; set; }
 
-        [Required] public TimeOnly? Time { get; set; }
+        [Required]
+        public TimeOnly? Time { get; set; }
     }
 
 }
