@@ -1,17 +1,23 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Sportradar.Calendar.Presentation.Web</a>
-    </div>
-</div>
-
-<input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Events
-            </NavLink>
+﻿<nav class="nav-surface">
+    <div class="nav-brand">
+        <span class="brand-badge">SR</span>
+        <div class="brand-copy">
+            <span class="brand-title">Sportradar Calendar</span>
+            <span class="brand-subtitle">All sport events.</span>
         </div>
-    </nav>
-</div>
+    </div>
+
+    <input id="nav-toggle" class="nav-toggle" type="checkbox" aria-label="Toggle navigation" />
+    <label class="nav-toggle-label" for="nav-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </label>
+
+    <div class="nav-actions">
+        <a href="#schedule" class="nav-link">Schedule</a>
+        <a href="#spotlight" class="nav-link">Spotlight</a>
+        <a href="#community" class="nav-link">Community</a>
+        <a href="#add-event" class="cta-link">Add event</a>
+    </div>
+</nav>
