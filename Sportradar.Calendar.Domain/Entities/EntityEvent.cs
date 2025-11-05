@@ -16,13 +16,24 @@ public sealed class EntityEvent
     public string Title { get; private set; } = "Placeholder Title";
     public EventStatus Status { get; private set; } = EventStatus.Scheduled;
     
+    public EntityEvent(int sportId, DateTimeOffset startsAt, string title)
+    {
+        SportId = sportId;
+        StartsAt = startsAt;
+        Title = title.Trim();
+    }
+    
     public EntityEvent(int id, int sportId, DateTimeOffset startsAt, string title)
     {
         Id = id;
         SportId = sportId;
         StartsAt = startsAt;
-        Title = title; ;
+        Title = title;
+        Title = title.Trim();
     }
     
-    private EntityEvent() {} // TODO: IMPLEMENT EF LATER.
+    private EntityEvent()
+    {
+        Title = string.Empty;
+    }
 }
