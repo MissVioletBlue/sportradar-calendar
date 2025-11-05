@@ -117,18 +117,18 @@
             <h2>Add a custom event</h2>
             <p>Add your own events. Your addition stays in this view.</p>
         </div>
-        <EditForm EditContext="_editContext" OnValidSubmit="HandleEventSubmit">
+        <EditForm EditContext="_editContext" OnValidSubmit="HandleEventSubmit" FormName="add-event-form">
             <DataAnnotationsValidator/>
             <div class="form-grid">
                 <div class="form-field">
                     <label for="event-title">Matchup</label>
-                    <InputText id="event-title" class="form-control" @bind-Value="_newEvent.Title"
+                    <InputText id="event-title" name="Title" class="form-control" @bind-Value="_newEvent.Title"
                                placeholder="e.g. Tigers vs. Falcons"/>
                     <ValidationMessage For="() => _newEvent.Title"/>
                 </div>
                 <div class="form-field">
                     <label for="event-sport">Sport</label>
-                    <InputText id="event-sport" class="form-control" @bind-Value="_newEvent.Sport"
+                    <InputText id="event-sport" name="Sport" class="form-control" @bind-Value="_newEvent.Sport"
                                placeholder="Basketball"/>
                     <ValidationMessage For="() => _newEvent.Sport"/>
                 </div>
@@ -136,6 +136,7 @@
                     <label for="event-date">Date</label>
                     <InputDate TValue="DateTime?"
                                id="event-date"
+                               name="Date"
                                class="form-control"
                                @bind-Value="_newEvent.Date" />
                     <ValidationMessage For="() => _newEvent.Date" />
@@ -145,7 +146,8 @@
                     <input id="event-time"
                            class="form-control"
                            type="time"
-                           @bind="_newEvent.Time" />
+                           @bind="_newEvent.Time"
+                           @bind:format="HH:mm" />
                     <ValidationMessage For="() => _newEvent.Time" />
                 </div>
             </div>
