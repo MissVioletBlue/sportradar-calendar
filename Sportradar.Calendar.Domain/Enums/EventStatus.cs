@@ -1,5 +1,6 @@
 ﻿namespace Sportradar.Calendar.Domain.Enums;
 
+// status values i map to UI badges, order kinda matches event lifecycle
 public enum EventStatus
 {
     Scheduled = 0,

@@ -1,0 +1,39 @@
+AI Reflection
+=============
+
+Intro
+-----
+I tried to code the whole calendar thing by myself first, because I only feel comfortable when I actually understand what’s going on. But I’m also not allergic to help – I used AI like a slightly weird teammate sitting next to me. I’d paste in the problem, read the answer slowly, compare it with docs or Blogs like Stackoverflow, and only keep the parts that really made sense to me.
+
+What I wrote on my own
+----------------------
+The core C# logic is mine: the logic between domain, application, infrastructure and the Razor pages. Setting up dependency injection, shaping the DTOs, wiring repositories, and getting the query/command flow working. If a line felt off, I’d usually stop and debug until I understood why it behaved that way.
+
+How AI jumped in for debugging
+------------------------------
+Most of my AI use was when my brain was fried from debugging. I’d describe the bug, get a suggestion, and then look for references online like docs, github issues, or StackOverflow to see if it actually held up. A lot of the time I rewrote the suggested code into my own style because it would make more sense to me and felt better with the way it was formatted.
+
+The nastiest bug was the Razor form for adding events:
+- The form kept resetting because the submit logic ran in a way that cleared the model before the success state showed, so validation kept shouting at me.
+- I forgot `@rendermode InteractiveServer` and the `<AntiforgeryToken />`, so the request never even left the browser.
+- On top of that, the time picker reset all the time because I forgot I added a useless `@bind:format` that fought the normal binding.
+
+AI helped me find those pieces, but after most of the time after all prompts I still went back to docs or blog posts to confirm the stuff it said before implementing the code. That mix finally stopped the form from clearing itself and the POST actually reached the backend again.
+
+How AI helped with UI
+---------------------
+I’m really not a design person. My brain defaults to plain text. So for UI polish I leaned on AI a lot. I’d show it my ugly Razor markup/CSS, ask for better spacing or layout ideas, then try them locally and keep what felt right. If something looked off I googled around. Without that help, the page would 100% still look like a school project from the early 2000s.
+
+Why I made certain choices
+--------------------------
+I stuck to the clean layering Architecture what I learned in class (as well as other choices):  
+- `Sportradar.Calendar.Domain` for entities and core logic  
+- Application layer for queries/commands  
+- Infrastructure for EF Core and data access  
+- Presentation for Razor components and controllers  
+
+That separation makes it easier to swap repositories later or add tests without everything exploding. Sometimes AI suggested shortcuts that would mix those layers, but if it messed with the architecture, I just ignored it. Future me would hate me if I did that. Thankfully, most of my computer science degree knowledge showed alot of value.
+
+One thing I would improve
+-------------------------
+If I had more time (and maybe motivataion because I hate tests), I’d add automated integration tests for the whole create-event flow. Right now, I’m just clicking through the UI. Having tests that cover the Razor form, the repository, and the database together would maybe have helped catching the race-condition bug faster.
