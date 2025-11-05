@@ -3,6 +3,7 @@ using Sportradar.Calendar.Application.DTOs;
 
 namespace Sportradar.Calendar.Infrastructure.InMemory;
 
+// quick in-memory repo mostly for tests or demos without database (no longer used)
 public sealed class InMemoryEventRepository : IEntityEventRepository
 {
     private static readonly IReadOnlyDictionary<int, string> SportNames = new Dictionary<int, string>
