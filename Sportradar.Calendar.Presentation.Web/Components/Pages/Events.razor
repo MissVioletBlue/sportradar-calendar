@@ -5,7 +5,10 @@
 @using Sportradar.Calendar.Application.Queries
 @using System.Linq
 @using System.Threading
+@using Sportradar.Calendar.Application.Abstractions
 @inject GetUpcomingEvents GetUpcomingEvents
+@inject GetAllSports GetAllSports
+@inject IEntityEventRepository EventRepository
 
 <PageTitle>Sports Event Calendar</PageTitle>
 
@@ -116,7 +119,7 @@
             <h2>Add a custom event</h2>
             <p>Add your own events. Your addition stays in this view.</p>
         </div>
-        <EditForm Model="_editContext" OnValidSubmit="HandleEventSubmit" FormName="add-event-form">
+        <EditForm EditContext="_editContext" OnValidSubmit="HandleEventSubmit" FormName="add-event-form">
             <DataAnnotationsValidator/>
             <div class="form-grid">
                 <div class="form-field">
@@ -127,9 +130,17 @@
                 </div>
                 <div class="form-field">
                     <label for="event-sport">Sport</label>
-                    <InputText id="event-sport" name="Sport" class="form-control" @bind-Value="_newEvent.Sport"
-                               placeholder="Basketball"/>
-                    <ValidationMessage For="() => _newEvent.Sport"/>
+                    <InputSelect id="event-sport"
+                                 TValue="int?"
+                                 class="form-control"
+                                 @bind-Value="_newEvent.SportId">
+                        <option value="">Select a sport</option>
+                        @foreach (var sport in _sports)
+                        {
+                            <option value="@sport.Id">@sport.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => _newEvent.SportId"/>
                 </div>
                 <div class="form-field">
                     <label for="event-date">Date</label>
@@ -151,9 +162,13 @@
                 </div>
             </div>
             <button type="submit" class="submit-button">Add event</button>
+            @if (!string.IsNullOrWhiteSpace(_submissionError))
+            {
+                <p class="error-message" role="alert">@_submissionError</p>
+            }
             @if (_showAddSuccess)
             {
-                <p class="success-message" role="status">Event added to this timeline! Refresh to return to the officialfeed.</p>
+                <p class="success-message" role="status">Event added to the official schedule!</p> // less weird text
             }
         </EditForm>
     </div>
@@ -161,12 +176,13 @@
 
 @code {
     private readonly List<EventDto> _events = new();
+    private readonly List<SportDto> _sports = new();
     private bool _isLoading = true;
     private string? _loadError;
     private EventFormModel _newEvent = default!;
     private EditContext? _editContext;
     private bool _showAddSuccess;
-    private int _customEventSeed = -1;
+    private string? _submissionError;
     private CancellationTokenSource? _loadEventsCts;
 
     private IReadOnlyList<EventDto> OrderedEvents => _events;
@@ -190,10 +206,13 @@
         {
             var from = DateTimeOffset.Now.AddYears(-10);
             var to = DateTimeOffset.Now.AddYears(10);
+            var sports = await GetAllSports.ExecuteAsync(loadCts.Token);
             var events = await GetUpcomingEvents.ExecuteAsync(from, to, null, loadCts.Token);
 
             await InvokeAsync(() =>
             {
+                _sports.Clear();
+                _sports.AddRange(sports);
                 _events.Clear();
                 _events.AddRange(events);
                 _events.Sort((a, b) => DateTimeOffset.Compare(a.StartsAt, b.StartsAt));
@@ -222,10 +241,11 @@
     private async Task HandleEventSubmit()
     {
         _showAddSuccess = false;
+        _submissionError = null;
 
-        if (_newEvent.Date is null 
-            || _newEvent.Time is null 
-            || string.IsNullOrWhiteSpace(_newEvent.Sport) 
+        if (_newEvent.Date is null
+            || _newEvent.Time is null
+            || _newEvent.SportId is null
             || string.IsNullOrWhiteSpace(_newEvent.Title))
         {
             return;
@@ -240,22 +260,37 @@
 
         var start = new DateTimeOffset(startLocal);
 
-        var newEvent = new EventDto(
-            _customEventSeed--,
-            _newEvent.Sport!.Trim(),
-            start,
-            _newEvent.Title!.Trim());
-
-        await InvokeAsync(() =>
+        try
         {
-            _events.Add(newEvent);
-            _events.Sort((a, b) => DateTimeOffset.Compare(a.StartsAt, b.StartsAt));
+            var createRequest = new CreateEventDto(
+                _newEvent.SportId.Value,
+                start,
+                _newEvent.Title!.Trim());
 
-        _showAddSuccess = true;
+            var newId = await EventRepository.AddAsync(createRequest, CancellationToken.None);
+            var created = await EventRepository.GetAsync(newId, CancellationToken.None);
 
-        ResetFormContext();
-        StateHasChanged();
-        });
+            if (created is not null)
+            {
+                _events.Add(created);
+                _events.Sort((a, b) => DateTimeOffset.Compare(a.StartsAt, b.StartsAt));
+            }
+
+            _showAddSuccess = true;
+            ResetFormContext();
+        }
+        catch (ArgumentException ex)
+        {
+            _submissionError = ex.Message;
+        }
+        catch (Exception)
+        {
+            _submissionError = "We couldn't save your event right now. Please try again.";
+        }
+        finally
+        {
+            StateHasChanged();
+        }
     }
 
     private void ResetFormContext()
@@ -273,6 +308,7 @@
     private void OnFormFieldChanged(object? sender, FieldChangedEventArgs e)
     {
         _showAddSuccess = false;
+        _submissionError = null;
     }
 
     public void Dispose()
@@ -303,9 +339,9 @@
         [StringLength(120, ErrorMessage = "Keep the matchup under 120 characters.")]
         public string? Title { get; set; }
 
-        [Required]
-        [StringLength(60, ErrorMessage = "Keep the sport name under 60 characters.")]
-        public string? Sport { get; set; }
+        [Required(ErrorMessage = "Select a sport.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Select a sport.")]
+        public int? SportId { get; set; }
 
         [Required] public DateTime? Date { get; set; }
 

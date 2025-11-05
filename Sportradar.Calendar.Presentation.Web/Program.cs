@@ -10,7 +10,9 @@ using Sportradar.Calendar.Presentation.Web.Requests;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<GetUpcomingEvents>();
+builder.Services.AddScoped<GetAllSports>();
 builder.Services.AddScoped<IEntityEventRepository, EfEntityEventRepository>();
+builder.Services.AddScoped<ISportRepository, EfSportRepository>();
 
 builder.Services.AddDbContext<AppDbContext>(optionsBuilder =>
 {
