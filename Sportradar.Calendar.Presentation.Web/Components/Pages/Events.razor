@@ -1,0 +1,344 @@
+﻿@page "/"
+@implements IDisposable
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using Sportradar.Calendar.Application.DTOs
+@using Sportradar.Calendar.Application.Queries
+@using System.Linq
+@using System.Threading
+@using Sportradar.Calendar.Application.Abstractions
+@inject GetUpcomingEvents GetUpcomingEvents
+@inject GetAllSports GetAllSports
+@inject IEntityEventRepository EventRepository
+
+<PageTitle>Sports Event Calendar</PageTitle>
+
+<section class="hero" id="schedule">
+    <div class="hero-text">
+        <span class="hero-eyebrow">Global sports pulse</span>
+        <h1>Upcoming Sports Events</h1>
+        <p>Track the events that matter most or add your own matchups.</p>
+        <div class="hero-stats">
+            <div class="stat-card">
+                <span class="stat-value">@(_isLoading ? "--" : _events.Count)</span>
+                <span class="stat-label">Tracked events</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">@(_isLoading ? "--" : UpcomingTodayCount)</span>
+                <span class="stat-label">Today</span>
+            </div>
+        </div>
+        <div class="hero-actions">
+            <a class="hero-link hero-link-primary" href="#add-event">Add an event</a>
+        </div>
+    </div>
+    @if (FeaturedEvent is not null)
+    {
+        <div class="hero-feature" id="spotlight">
+            <span class="feature-label">Next on the slate</span>
+            <h2>@FeaturedEvent.Title</h2>
+            <div class="feature-meta">
+                <span>@FeaturedEvent.Sport</span>
+                <span>@FeaturedEvent.StartsAt.ToLocalTime().ToString("dddd, dd MMM yyyy")</span>
+                <span>@FeaturedEvent.StartsAt.ToLocalTime().ToString("HH:mm")</span>
+            </div>
+            <p class="feature-caption">Book your tickets now, this event will be a kicker!</p>
+        </div>
+    }
+</section>
+
+<section class="events-section" aria-live="polite">
+    <h2 class="section-heading">Full schedule</h2>
+
+    @if (_isLoading)
+    {
+        <div class="event-skeleton-grid" role="status" aria-label="Loading events">
+            @for (var i = 0; i < 6; i++)
+            {
+                <div class="event-skeleton"></div>
+            }
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_loadError))
+    {
+        <div class="empty-state error">
+            <h3>We ran into overtime</h3>
+            <p>@_loadError</p>
+        </div>
+    }
+    else if (_events.Count == 0)
+    {
+        <div class="empty-state">
+            <h3>No events found</h3>
+            <p>Looks like the scoreboard is empty. Be the first to add a matchup below.</p>
+        </div>
+    }
+    else
+    {
+        <div class="events-grid">
+            @foreach (var e in OrderedEvents)
+            {
+                <article class="event-card" id="event-@e.Id">
+                    <header>
+                        <div class="event-date">
+                            <span class="event-day">@e.StartsAt.ToLocalTime().ToString("ddd")</span>
+                            <span class="event-daynum">@e.StartsAt.ToLocalTime().ToString("dd")</span>
+                        </div>
+                        <div class="event-time">
+                            <span>@e.StartsAt.ToLocalTime().ToString("HH:mm")</span>
+                            <span>@e.StartsAt.ToLocalTime().ToString("MMM yyyy")</span>
+                        </div>
+                    </header>
+                    <div class="event-body">
+                        <span class="event-sport">@e.Sport</span>
+                        <h3>@e.Title</h3>
+                    </div>
+                    <footer>
+                        <a class="event-link" href="#add-event">Add to personal list (TO DO: Add functionality)</a> <!-- TODO: Add personal list functionality -->
+                    </footer>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+@if (!string.IsNullOrWhiteSpace(CommunityMessage))
+{
+    <section class="community-section" id="community">
+        <h2 class="section-heading">Community highlight</h2>
+        <p>@CommunityMessage</p>
+    </section>
+}
+
+<section class="add-event" id="add-event">
+    <div class="add-event-card">
+        <div class="add-event-copy">
+            <h2>Add a custom event</h2>
+            <p>Add your own events. Your addition stays in this view.</p>
+        </div>
+        <EditForm EditContext="_editContext" OnValidSubmit="HandleEventSubmit" FormName="add-event-form">
+            <AntiforgeryToken /> <DataAnnotationsValidator/>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="event-title">Matchup</label>
+                    <InputText id="event-title" name="Title" class="form-control" @bind-Value="_newEvent.Title"
+                               placeholder="e.g. Tigers vs. Falcons"/>
+                    <ValidationMessage For="() => _newEvent.Title"/>
+                </div>
+                <div class="form-field">
+                    <label for="event-sport">Sport</label>
+                    <InputSelect id="event-sport"
+                                 TValue="int?"
+                                 class="form-control"
+                                 @bind-Value="_newEvent.SportId">
+                        <option value="">Select a sport</option>
+                        @foreach (var sport in _sports)
+                        {
+                            <option value="@sport.Id">@sport.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => _newEvent.SportId"/>
+                </div>
+                <div class="form-field">
+                    <label for="event-date">Date</label>
+                    <InputDate TValue="DateTime?"
+                               id="event-date"
+                               name="Date"
+                               class="form-control"
+                               @bind-Value="_newEvent.Date" />
+                    <ValidationMessage For="() => _newEvent.Date" />
+                </div>
+                <div class="form-field">
+                    <label for="event-time">Start time</label>
+                    <input id="event-time"
+                           class="form-control"
+                           type="time"
+                           @bind="_newEvent.Time" />
+                    <ValidationMessage For="() => _newEvent.Time" />
+                </div>
+            </div>
+            <button type="submit" class="submit-button">Add event</button>
+            @if (!string.IsNullOrWhiteSpace(_submissionError))
+            {
+                <p class="error-message" role="alert">@_submissionError</p>
+            }
+            @if (_showAddSuccess)
+            {
+                <p class="success-message" role="status">Event added to the official schedule!</p> // less weird text
+            }
+        </EditForm>
+    </div>
+</section>
+
+@code {
+    private readonly List<EventDto> _events = new();
+    private readonly List<SportDto> _sports = new();
+    private bool _isLoading = true;
+    private string? _loadError;
+    private EventFormModel _newEvent = default!;
+    private EditContext? _editContext;
+    private bool _showAddSuccess;
+    private string? _submissionError;
+    private CancellationTokenSource? _loadEventsCts;
+
+    private IReadOnlyList<EventDto> OrderedEvents => _events;
+
+    private EventDto? FeaturedEvent => _events.FirstOrDefault();
+
+    private int UniqueSportsCount => _events.Select(e => e.Sport).Where(s => !string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+
+    private int UpcomingTodayCount => _events.Count(e => e.StartsAt.ToLocalTime().Date == DateTime.Now.Date);
+
+    private string CommunityMessage => _events.Count > 0 ? "Fans across the globe are gearing up for match day. (TO DO: Add a more interesting description)" : string.Empty; // TODO: Better description.
+
+    protected override async Task OnInitializedAsync()
+    {
+        ResetFormContext();
+        
+        var loadCts = new CancellationTokenSource();
+        _loadEventsCts = loadCts;
+
+        try
+        {
+            var from = DateTimeOffset.Now.AddYears(-10);
+            var to = DateTimeOffset.Now.AddYears(10);
+            var sports = await GetAllSports.ExecuteAsync(loadCts.Token);
+            var events = await GetUpcomingEvents.ExecuteAsync(from, to, null, loadCts.Token);
+
+            await InvokeAsync(() =>
+            {
+                _sports.Clear();
+                _sports.AddRange(sports);
+                _events.Clear();
+                _events.AddRange(events);
+                _events.Sort((a, b) => DateTimeOffset.Compare(a.StartsAt, b.StartsAt));
+                _isLoading = false;
+            });
+        }
+        catch (OperationCanceledException) when (loadCts.IsCancellationRequested)
+        {
+            await InvokeAsync(() =>
+            {
+                _loadError = "Couldn't retrieve the official feed just yet. Please try again in a moment.";
+                _isLoading = false;
+            });
+        }
+        finally
+        {
+            loadCts.Dispose();
+
+            if (ReferenceEquals(_loadEventsCts, loadCts))
+            {
+                _loadEventsCts = null;
+            }
+        }
+    }
+
+    private async Task HandleEventSubmit()
+    {
+        _showAddSuccess = false;
+        _submissionError = null;
+
+        if (_newEvent.Date is null
+            || _newEvent.Time is null
+            || _newEvent.SportId is null
+            || string.IsNullOrWhiteSpace(_newEvent.Title))
+        {
+            return;
+        }
+
+        var date = _newEvent.Date.Value.Date;
+        var time = _newEvent.Time.Value;
+
+        var startLocal = DateTime.SpecifyKind(
+            date.Add(time.ToTimeSpan()),
+            DateTimeKind.Local);
+
+        var start = new DateTimeOffset(startLocal);
+
+        try
+        {
+            var createRequest = new CreateEventDto(
+                _newEvent.SportId.Value,
+                start,
+                _newEvent.Title!.Trim());
+
+            var newId = await EventRepository.AddAsync(createRequest, CancellationToken.None);
+            var created = await EventRepository.GetAsync(newId, CancellationToken.None);
+
+            if (created is not null)
+            {
+                _events.Add(created);
+                _events.Sort((a, b) => DateTimeOffset.Compare(a.StartsAt, b.StartsAt));
+            }
+
+            _showAddSuccess = true;
+            ResetFormContext();
+        }
+        catch (ArgumentException ex)
+        {
+            _submissionError = ex.Message;
+        }
+        catch (Exception)
+        {
+            _submissionError = "We couldn't save your event right now. Please try again.";
+        }
+    }
+
+    private void ResetFormContext()
+    {
+        if (_editContext is not null)
+        {
+            _editContext.OnFieldChanged -= OnFormFieldChanged;
+        }
+
+        _newEvent = new EventFormModel();
+        _editContext = new EditContext(_newEvent);
+        _editContext.OnFieldChanged += OnFormFieldChanged;
+    }
+
+    private void OnFormFieldChanged(object? sender, FieldChangedEventArgs e)
+    {
+        _showAddSuccess = false;
+        _submissionError = null;
+    }
+
+    public void Dispose()
+    {
+        if (_loadEventsCts is not null)
+        {
+            try
+            {
+                _loadEventsCts.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+
+            _loadEventsCts.Dispose();
+            _loadEventsCts = null;
+        }
+        
+        if (_editContext is not null)
+        {
+            _editContext.OnFieldChanged -= OnFormFieldChanged;
+        }
+    }
+
+    private sealed class EventFormModel
+    {
+        [Required]
+        [StringLength(120, ErrorMessage = "Keep the matchup under 120 characters.")]
+        public string? Title { get; set; }
+
+        [Required(ErrorMessage = "Select a sport.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Select a sport.")]
+        public int? SportId { get; set; }
+
+        [Required] public DateTime? Date { get; set; }
+
+        [Required]
+        public TimeOnly? Time { get; set; }
+    }
+
+}
