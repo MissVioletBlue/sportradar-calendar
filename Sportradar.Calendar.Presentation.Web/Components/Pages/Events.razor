@@ -116,7 +116,7 @@
             <h2>Add a custom event</h2>
             <p>Add your own events. Your addition stays in this view.</p>
         </div>
-        <EditForm EditContext="_editContext" OnValidSubmit="HandleEventSubmit" FormName="add-event-form">
+        <EditForm Model="_editContext" OnValidSubmit="HandleEventSubmit" FormName="add-event-form">
             <DataAnnotationsValidator/>
             <div class="form-grid">
                 <div class="form-field">
@@ -167,6 +167,7 @@
     private EditContext? _editContext;
     private bool _showAddSuccess;
     private int _customEventSeed = -1;
+    private CancellationTokenSource? _loadEventsCts;
 
     private IReadOnlyList<EventDto> OrderedEvents => _events;
 
@@ -181,23 +182,40 @@
     protected override async Task OnInitializedAsync()
     {
         ResetFormContext();
+        
+        var loadCts = new CancellationTokenSource();
+        _loadEventsCts = loadCts;
 
         try
         {
             var from = DateTimeOffset.Now.AddYears(-10);
             var to = DateTimeOffset.Now.AddYears(10);
-            var events = await GetUpcomingEvents.ExecuteAsync(from, to, null, CancellationToken.None);
+            var events = await GetUpcomingEvents.ExecuteAsync(from, to, null, loadCts.Token);
 
-            _events.AddRange(events);
-            _events.Sort((a, b) => DateTimeOffset.Compare(a.StartsAt, b.StartsAt));
+            await InvokeAsync(() =>
+            {
+                _events.Clear();
+                _events.AddRange(events);
+                _events.Sort((a, b) => DateTimeOffset.Compare(a.StartsAt, b.StartsAt));
+                _isLoading = false;
+            });
         }
-        catch
+        catch (OperationCanceledException) when (loadCts.IsCancellationRequested)
         {
-            _loadError = "We couldn't retrieve the official feed just yet. Please try again in a moment.";
+            await InvokeAsync(() =>
+            {
+                _loadError = "Couldn't retrieve the official feed just yet. Please try again in a moment.";
+                _isLoading = false;
+            });
         }
         finally
         {
-            _isLoading = false;
+            loadCts.Dispose();
+
+            if (ReferenceEquals(_loadEventsCts, loadCts))
+            {
+                _loadEventsCts = null;
+            }
         }
     }
 
@@ -228,13 +246,16 @@
             start,
             _newEvent.Title!.Trim());
 
-        _events.Add(newEvent);
-        _events.Sort((a, b) => DateTimeOffset.Compare(a.StartsAt, b.StartsAt));
+        await InvokeAsync(() =>
+        {
+            _events.Add(newEvent);
+            _events.Sort((a, b) => DateTimeOffset.Compare(a.StartsAt, b.StartsAt));
 
         _showAddSuccess = true;
 
         ResetFormContext();
-        await InvokeAsync(StateHasChanged);
+        StateHasChanged();
+        });
     }
 
     private void ResetFormContext()
@@ -256,6 +277,20 @@
 
     public void Dispose()
     {
+        if (_loadEventsCts is not null)
+        {
+            try
+            {
+                _loadEventsCts.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+
+            _loadEventsCts.Dispose();
+            _loadEventsCts = null;
+        }
+        
         if (_editContext is not null)
         {
             _editContext.OnFieldChanged -= OnFormFieldChanged;
