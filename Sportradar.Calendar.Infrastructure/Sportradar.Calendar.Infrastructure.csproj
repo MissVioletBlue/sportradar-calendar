@@ -7,11 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Configurations\" />
-      <Folder Include="Services\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Sportradar.Calendar.Application\Sportradar.Calendar.Application.csproj" />
       <ProjectReference Include="..\Sportradar.Calendar.Domain\Sportradar.Calendar.Domain.csproj" />
     </ItemGroup>
